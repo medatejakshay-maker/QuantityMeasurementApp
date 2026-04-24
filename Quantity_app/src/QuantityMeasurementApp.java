@@ -42,24 +42,20 @@ public class QuantityMeasurementApp {
         public Quantity convertTo(LengthUnit targetUnit) {
             if (targetUnit == null) throw new IllegalArgumentException("Target unit null");
             double feet = toFeet();
-            double converted = targetUnit.fromFeet(feet);
-            return new Quantity(converted, targetUnit);
+            return new Quantity(targetUnit.fromFeet(feet), targetUnit);
         }
 
-        // -------- Add (Instance Method) --------
+        // -------- UC6: Add (result in first operand unit) --------
         public Quantity add(Quantity other) {
-            if (other == null) throw new IllegalArgumentException("Other cannot be null");
-
-            double sumFeet = this.toFeet() + other.toFeet();
-            double result = this.unit.fromFeet(sumFeet);
-
-            return new Quantity(result, this.unit); // result in unit of first operand
+            return add(this, other, this.unit);
         }
 
-        // -------- Static Add (Flexible API) --------
+        // -------- UC7: Add with Explicit Target Unit --------
         public static Quantity add(Quantity q1, Quantity q2, LengthUnit targetUnit) {
+
             if (q1 == null || q2 == null)
                 throw new IllegalArgumentException("Operands cannot be null");
+
             if (targetUnit == null)
                 throw new IllegalArgumentException("Target unit cannot be null");
 
@@ -88,85 +84,78 @@ public class QuantityMeasurementApp {
     // -------- Main Method (All Test Cases) --------
     public static void main(String[] args) {
 
-        // ---- Same Unit ----
-        System.out.println("Feet + Feet: " +
-                new Quantity(1.0, LengthUnit.FEET)
-                        .add(new Quantity(2.0, LengthUnit.FEET))); // 3 ft
+        Quantity f1 = new Quantity(1.0, LengthUnit.FEET);
+        Quantity i12 = new Quantity(12.0, LengthUnit.INCH);
+        Quantity y1 = new Quantity(1.0, LengthUnit.YARD);
+        Quantity cm = new Quantity(2.54, LengthUnit.CENTIMETER);
 
-        System.out.println("Inch + Inch: " +
-                new Quantity(6.0, LengthUnit.INCH)
-                        .add(new Quantity(6.0, LengthUnit.INCH))); // 12 in
+        // ---- Explicit Target Unit Tests ----
+        System.out.println("Feet Target: " +
+                Quantity.add(f1, i12, LengthUnit.FEET)); // 2 ft
 
-        // ---- Cross Unit ----
-        System.out.println("Feet + Inch: " +
-                new Quantity(1.0, LengthUnit.FEET)
-                        .add(new Quantity(12.0, LengthUnit.INCH))); // 2 ft
+        System.out.println("Inch Target: " +
+                Quantity.add(f1, i12, LengthUnit.INCH)); // 24 in
 
-        System.out.println("Inch + Feet: " +
-                new Quantity(12.0, LengthUnit.INCH)
-                        .add(new Quantity(1.0, LengthUnit.FEET))); // 24 in
+        System.out.println("Yard Target: " +
+                Quantity.add(f1, i12, LengthUnit.YARD)); // ~0.667 yd
 
-        System.out.println("Yard + Feet: " +
-                new Quantity(1.0, LengthUnit.YARD)
-                        .add(new Quantity(3.0, LengthUnit.FEET))); // 2 yd
+        System.out.println("Yard + Feet → Yard: " +
+                Quantity.add(y1, new Quantity(3.0, LengthUnit.FEET), LengthUnit.YARD)); // 2 yd
 
-        System.out.println("Inch + Yard: " +
-                new Quantity(36.0, LengthUnit.INCH)
-                        .add(new Quantity(1.0, LengthUnit.YARD))); // 72 in
+        System.out.println("Inch + Yard → Feet: " +
+                Quantity.add(new Quantity(36.0, LengthUnit.INCH), y1, LengthUnit.FEET)); // 6 ft
 
-        System.out.println("CM + Inch: " +
-                new Quantity(2.54, LengthUnit.CENTIMETER)
-                        .add(new Quantity(1.0, LengthUnit.INCH))); // ~5.08 cm
+        System.out.println("CM + Inch → CM: " +
+                Quantity.add(cm, new Quantity(1.0, LengthUnit.INCH), LengthUnit.CENTIMETER)); // ~5.08 cm
 
         // ---- Zero ----
         System.out.println("With Zero: " +
-                new Quantity(5.0, LengthUnit.FEET)
-                        .add(new Quantity(0.0, LengthUnit.INCH)));
+                Quantity.add(new Quantity(5.0, LengthUnit.FEET),
+                        new Quantity(0.0, LengthUnit.INCH),
+                        LengthUnit.YARD));
 
         // ---- Negative ----
-        System.out.println("With Negative: " +
-                new Quantity(5.0, LengthUnit.FEET)
-                        .add(new Quantity(-2.0, LengthUnit.FEET)));
+        System.out.println("Negative Values: " +
+                Quantity.add(new Quantity(5.0, LengthUnit.FEET),
+                        new Quantity(-2.0, LengthUnit.FEET),
+                        LengthUnit.INCH));
 
         // ---- Commutativity ----
-        Quantity a = new Quantity(1.0, LengthUnit.FEET);
-        Quantity b = new Quantity(12.0, LengthUnit.INCH);
+        Quantity r1 = Quantity.add(f1, i12, LengthUnit.YARD);
+        Quantity r2 = Quantity.add(i12, f1, LengthUnit.YARD);
+        System.out.println("Commutativity: " + r1.equals(r2));
 
-        Quantity result1 = a.add(b);
-        Quantity result2 = Quantity.add(b, a, LengthUnit.FEET);
+        // ---- Same as UC6 (backward compatibility) ----
+        System.out.println("Default Add (UC6): " + f1.add(i12)); // 2 ft
 
-        System.out.println("Commutativity Check: " + result1.equals(result2));
-
-        // ---- Large Values ----
-        System.out.println("Large Values: " +
-                new Quantity(1e6, LengthUnit.FEET)
-                        .add(new Quantity(1e6, LengthUnit.FEET)));
-
-        // ---- Small Values ----
-        System.out.println("Small Values: " +
-                new Quantity(0.001, LengthUnit.FEET)
-                        .add(new Quantity(0.002, LengthUnit.FEET)));
-
-        // ---- Null Handling ----
+        // ---- Null Target Unit ----
         try {
-            new Quantity(1.0, LengthUnit.FEET).add(null);
+            Quantity.add(f1, i12, null);
         } catch (Exception e) {
-            System.out.println("Null Test: " + e.getMessage());
+            System.out.println("Null Target Test: " + e.getMessage());
         }
+
+        // ---- Large to Small Scale ----
+        System.out.println("Large to Small: " +
+                Quantity.add(new Quantity(1000.0, LengthUnit.FEET),
+                        new Quantity(500.0, LengthUnit.FEET),
+                        LengthUnit.INCH));
+
+        // ---- Small to Large Scale ----
+        System.out.println("Small to Large: " +
+                Quantity.add(new Quantity(12.0, LengthUnit.INCH),
+                        new Quantity(12.0, LengthUnit.INCH),
+                        LengthUnit.YARD));
 
         // ---- Example Outputs ----
         System.out.println("\nExample Outputs:");
+        System.out.println("add(1 FT, 12 IN, FT) → " +
+                Quantity.add(f1, i12, LengthUnit.FEET));
 
-        System.out.println("add(Quantity(1.0, FEET), Quantity(2.0, FEET)) → " +
-                new Quantity(1.0, LengthUnit.FEET)
-                        .add(new Quantity(2.0, LengthUnit.FEET)));
+        System.out.println("add(1 FT, 12 IN, IN) → " +
+                Quantity.add(f1, i12, LengthUnit.INCH));
 
-        System.out.println("add(Quantity(1.0, FEET), Quantity(12.0, INCH)) → " +
-                new Quantity(1.0, LengthUnit.FEET)
-                        .add(new Quantity(12.0, LengthUnit.INCH)));
-
-        System.out.println("add(Quantity(12.0, INCH), Quantity(1.0, FEET)) → " +
-                new Quantity(12.0, LengthUnit.INCH)
-                        .add(new Quantity(1.0, LengthUnit.FEET)));
+        System.out.println("add(1 FT, 12 IN, YD) → " +
+                Quantity.add(f1, i12, LengthUnit.YARD));
     }
 }
