@@ -1,61 +1,81 @@
 public class QuantityMeasurementApp {
 
-    // Inner class to represent Feet measurement
+    // -------- Feet Class --------
     static class Feet {
         private final double value;
 
-        // Constructor
         public Feet(double value) {
             this.value = value;
         }
 
-        public double getValue() {
-            return value;
-        }
-
-        // Overriding equals() method
         @Override
         public boolean equals(Object obj) {
-
-            // Same reference check
             if (this == obj) return true;
-
-            // Null and type check
             if (obj == null || getClass() != obj.getClass()) return false;
-
-            // Type casting
             Feet other = (Feet) obj;
-
-            // Floating-point comparison
             return Double.compare(this.value, other.value) == 0;
         }
     }
 
-    // Main method (acts like test runner)
+    // -------- Inches Class --------
+    static class Inches {
+        private final double value;
+
+        public Inches(double value) {
+            this.value = value;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null || getClass() != obj.getClass()) return false;
+            Inches other = (Inches) obj;
+            return Double.compare(this.value, other.value) == 0;
+        }
+    }
+
+    // -------- Static Methods (Reduce dependency on main) --------
+    public static boolean checkFeetEquality(double a, double b) {
+        Feet f1 = new Feet(a);
+        Feet f2 = new Feet(b);
+        return f1.equals(f2);
+    }
+
+    public static boolean checkInchesEquality(double a, double b) {
+        Inches i1 = new Inches(a);
+        Inches i2 = new Inches(b);
+        return i1.equals(i2);
+    }
+
+    // -------- Main Method (Test Runner) --------
     public static void main(String[] args) {
 
-        // Test 1: Same Value
-        Feet f1 = new Feet(1.0);
-        Feet f2 = new Feet(1.0);
-        System.out.println("Test Same Value: " + f1.equals(f2)); // true
+        // ---- Feet Tests ----
+        System.out.println("Feet Tests:");
+        System.out.println("Same Value: " + checkFeetEquality(1.0, 1.0)); // true
+        System.out.println("Different Value: " + checkFeetEquality(1.0, 2.0)); // false
 
-        // Test 2: Different Value
-        Feet f3 = new Feet(2.0);
-        System.out.println("Test Different Value: " + f1.equals(f3)); // false
+        Feet f = new Feet(1.0);
+        System.out.println("Null Comparison: " + f.equals(null)); // false
+        System.out.println("Same Reference: " + f.equals(f)); // true
+        System.out.println("Non-Numeric Input: " + f.equals("abc")); // false
 
-        // Test 3: Null Comparison
-        System.out.println("Test Null Comparison: " + f1.equals(null)); // false
+        // ---- Inches Tests ----
+        System.out.println("\nInches Tests:");
+        System.out.println("Same Value: " + checkInchesEquality(1.0, 1.0)); // true
+        System.out.println("Different Value: " + checkInchesEquality(1.0, 2.0)); // false
 
-        // Test 4: Same Reference
-        System.out.println("Test Same Reference: " + f1.equals(f1)); // true
+        Inches i = new Inches(1.0);
+        System.out.println("Null Comparison: " + i.equals(null)); // false
+        System.out.println("Same Reference: " + i.equals(i)); // true
+        System.out.println("Non-Numeric Input: " + i.equals("xyz")); // false
 
-        // Test 5: Non-numeric input
-        String nonNumeric = "abc";
-        System.out.println("Test Non-Numeric Input: " + f1.equals(nonNumeric)); // false
-
-        // Example Output format
+        // ---- Example Output ----
         System.out.println("\nExample:");
+        System.out.println("Input: 1.0 inch and 1.0 inch");
+        System.out.println("Output: " + (checkInchesEquality(1.0, 1.0) ? "Equal (true)" : "Not Equal (false)"));
+
         System.out.println("Input: 1.0 ft and 1.0 ft");
-        System.out.println("Output: " + (f1.equals(f2) ? "Equal (true)" : "Not Equal (false)"));
+        System.out.println("Output: " + (checkFeetEquality(1.0, 1.0) ? "Equal (true)" : "Not Equal (false)"));
     }
 }
